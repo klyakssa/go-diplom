@@ -42,6 +42,16 @@ func (h *AuthHandler) Register(c *gin.Context) {
 			c.JSON(409, gin.H{"error": "User already exists"})
 			return
 		}
+		if errors.Is(err, auth.ErrPasswordTooLong) {
+			h.log.Warn("Password too long", zap.String("login", req.Login))
+			c.JSON(400, gin.H{"error": "Password is too long"})
+			return
+		}
+		if errors.Is(err, auth.ErrPasswordTooShort) {
+			h.log.Warn("Password too short", zap.String("login", req.Login))
+			c.JSON(400, gin.H{"error": "Password is too short"})
+			return
+		}
 		h.log.Error("Failed to register user", zap.Error(err))
 		c.JSON(500, gin.H{"error": "Internal server error"})
 		return

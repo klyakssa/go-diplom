@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/klyakssa/go-diplom.git/internal/domain/auth"
 	"github.com/klyakssa/go-diplom.git/pkg/jwt"
@@ -18,12 +19,22 @@ func NewAuthService(repo auth.Repository, jwtManager *jwt.JWTManager) *AuthServi
 }
 
 func (s *AuthService) Register(ctx context.Context, login, password string) (string, error) {
+	if len(login) > 255 {
+		return "", auth.ErrLoginTooLong
+	}
+
 	if _, err := s.repo.GetUserByLogin(ctx, login); err == nil {
 		return "", auth.ErrUserAlreadyExists
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
+		if errors.Is(err, bcrypt.ErrPasswordTooLong) {
+			return "", auth.ErrPasswordTooLong
+		}
+		if errors.Is(err, bcrypt.ErrHashTooShort) {
+			return "", auth.ErrPasswordTooShort
+		}
 		return "", err
 	}
 
