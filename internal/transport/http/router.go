@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -36,7 +35,7 @@ func NewRouter(logger *logger.Logger, cfg *config.Config, jwtManager *jwt.JWTMan
 		cfg:    cfg.Web,
 		engine: engine,
 		server: &http.Server{
-			Addr:         fmt.Sprintf(":%d", cfg.Web.Port),
+			Addr:         cfg.Web.RunAddress,
 			Handler:      engine,
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 10 * time.Second,
@@ -50,7 +49,7 @@ func (r *Router) Run(ctx context.Context) error {
 
 	errChan := make(chan error, 1)
 	go func() {
-		r.log.Info("HTTP server started on port " + fmt.Sprintf("%d", r.cfg.Port))
+		r.log.Info("HTTP server started on address " + r.cfg.RunAddress)
 		if err := r.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			errChan <- err
 		}

@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"strings"
 	"time"
@@ -10,7 +11,7 @@ import (
 )
 
 type WebServerConfig struct {
-	Port int
+	RunAddress string `mapstructure:"run-address"`
 }
 
 type AppConfig struct {
@@ -34,6 +35,10 @@ type JWTConfig struct {
 	Expire time.Duration `mapstructure:"expire"`
 }
 
+type AccrualConfig struct {
+	Address string `mapstructure:"address"`
+}
+
 type Config struct {
 	Debug   bool                  `mapstructure:"debug"`
 	App     *AppConfig            `mapstructure:"app"`
@@ -41,6 +46,7 @@ type Config struct {
 	Web     *WebServerConfig      `mapstructure:"web"`
 	PostDB  *DBConfig             `mapstructure:"postdb"`
 	JWT     *JWTConfig            `mapstructure:"jwt"`
+	Accrual *AccrualConfig        `mapstructure:"accrual"`
 }
 
 var C *Config = new(Config)
@@ -54,6 +60,7 @@ func initConfig() {
 	loadDefault()
 	loadFile()
 	loadEnv()
+	loadFlags()
 
 	if viper.GetBool("debug") {
 		viper.SetDefault("logging.level", "debug")
@@ -66,6 +73,30 @@ func loadEnv() {
 	viper.SetEnvPrefix("GOMART")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
+
+	viper.BindEnv("web.run-address", "RUN_ADDRESS")
+	viper.BindEnv("postdb.connection-string", "DATABASE_URI")
+	viper.BindEnv("accrual.address", "ACCRUAL_SYSTEM_ADDRESS")
+}
+
+func loadFlags() {
+	runAddr := flag.String("a", "", "server run address")
+	dbURI := flag.String("d", "", "database connection string")
+	accrualAddr := flag.String("r", "", "accrual system address")
+
+	flag.Parse()
+
+	if *runAddr != "" {
+		viper.Set("web.run-address", *runAddr)
+	}
+
+	if *dbURI != "" {
+		viper.Set("postdb.connection-string", *dbURI)
+	}
+
+	if *accrualAddr != "" {
+		viper.Set("accrual.address", *accrualAddr)
+	}
 }
 
 const (
@@ -82,7 +113,9 @@ func loadDefault() {
 	viper.SetDefault("logging.max-backups", 3)
 	viper.SetDefault("logging.max-age", 30)
 
-	viper.SetDefault("web.port", 8100)
+	viper.SetDefault("web.run-address", ":8100")
+
+	viper.SetDefault("accrual.address", "http://localhost:8080")
 
 	viper.SetDefault("postdb.connection-string", "postgres://test:11@localhost:5432/diplom?sslmode=disable")
 
