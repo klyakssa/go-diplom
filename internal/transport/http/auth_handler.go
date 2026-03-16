@@ -82,6 +82,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 			c.JSON(404, gin.H{"error": "User not found"})
 			return
 		}
+		if errors.Is(err, auth.ErrInvalidCredentials) {
+			h.log.Warn("Invalid login or password", zap.String("login", req.Login))
+			c.JSON(401, gin.H{"error": "Invalid login or password"})
+			return
+		}
 		h.log.Error("Failed to login user", zap.Error(err))
 		c.JSON(500, gin.H{"error": "Internal server error"})
 		return

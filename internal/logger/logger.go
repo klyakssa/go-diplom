@@ -3,6 +3,7 @@ package logger
 import (
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/klyakssa/go-diplom.git/internal/config"
 	"github.com/natefinch/lumberjack"
@@ -21,7 +22,7 @@ func NewLogger(cfg *config.LoggingConfiguration, name string) *Logger {
 
 func configure(cfg *config.LoggingConfiguration, name string) zapcore.Core {
 	fileWriter := zapcore.AddSync(&lumberjack.Logger{
-		Filename:   filepath.Join(cfg.Path, name),
+		Filename:   filepath.Join(cfg.Path, name+".log"),
 		MaxSize:    cfg.MaxSize,
 		MaxBackups: cfg.MaxBackups,
 		MaxAge:     cfg.MaxAge,
@@ -56,7 +57,9 @@ func configure(cfg *config.LoggingConfiguration, name string) zapcore.Core {
 	}
 
 	enconfig := zap.NewProductionEncoderConfig()
-	enconfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	enconfig.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+		enc.AppendString(t.Format("2006-01-02 15:04:05"))
+	}
 	enconfig.TimeKey = "timestamp"
 
 	consoleWriter := zapcore.Lock(os.Stdout)
@@ -68,5 +71,3 @@ func configure(cfg *config.LoggingConfiguration, name string) zapcore.Core {
 		zapcore.NewCore(jsonEncoder, fileWriter, priority),
 	)
 }
-
-

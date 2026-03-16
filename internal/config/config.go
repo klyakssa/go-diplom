@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 )
 
@@ -48,11 +47,6 @@ var C *Config = new(Config)
 
 func InitConfiguration() *Config {
 	initConfig()
-	viper.WatchConfig()
-	viper.OnConfigChange(func(e fsnotify.Event) {
-		initConfig()
-	})
-
 	return C
 }
 
