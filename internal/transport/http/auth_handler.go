@@ -9,6 +9,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const invalidRequestMsg = "Invalid request"
+
 type AuthHandler struct {
 	service auth.Service
 	log     *logger.Logger
@@ -26,8 +28,8 @@ type registerRequest struct {
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req registerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		h.log.Error("Invalid request", zap.Error(err))
-		c.JSON(400, gin.H{"error": "Invalid request"})
+		h.log.Error(invalidRequestMsg, zap.Error(err))
+		c.JSON(400, gin.H{"error": invalidRequestMsg})
 		return
 	}
 
@@ -41,6 +43,36 @@ func (h *AuthHandler) Register(c *gin.Context) {
 			return
 		}
 		h.log.Error("Failed to register user", zap.Error(err))
+		c.JSON(500, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	c.JSON(200, &gin.H{"token": token})
+}
+
+type loginRequest struct {
+	Login    string `json:"login" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+func (h *AuthHandler) Login(c *gin.Context) {
+	var req loginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		h.log.Error(invalidRequestMsg, zap.Error(err))
+		c.JSON(400, gin.H{"error": invalidRequestMsg})
+		return
+	}
+
+	h.log.Debug("LoginRequest", zap.Any("body", req))
+
+	token, err := h.service.Login(c.Request.Context(), req.Login, req.Password)
+	if err != nil {
+		if errors.Is(err, auth.ErrUserNotFound) {
+			h.log.Warn("User not found", zap.String("login", req.Login))
+			c.JSON(404, gin.H{"error": "User not found"})
+			return
+		}
+		h.log.Error("Failed to login user", zap.Error(err))
 		c.JSON(500, gin.H{"error": "Internal server error"})
 		return
 	}

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
@@ -29,12 +30,18 @@ type DBConfig struct {
 	ConnectionString string `mapstructure:"connection-string"`
 }
 
+type JWTConfig struct {
+	Secret string        `mapstructure:"secret"`
+	Expire time.Duration `mapstructure:"expire"`
+}
+
 type Config struct {
 	Debug   bool                  `mapstructure:"debug"`
 	App     *AppConfig            `mapstructure:"app"`
 	Logging *LoggingConfiguration `mapstructure:"logging"`
 	Web     *WebServerConfig      `mapstructure:"web"`
 	PostDB  *DBConfig             `mapstructure:"postdb"`
+	JWT     *JWTConfig            `mapstructure:"jwt"`
 }
 
 var C *Config = new(Config)
@@ -83,7 +90,10 @@ func loadDefault() {
 
 	viper.SetDefault("web.port", 8100)
 
-	viper.SetDefault("postdb.connection-string", "postgres://test:11@localhost:5432/prac?sslmode=disable")
+	viper.SetDefault("postdb.connection-string", "postgres://test:11@localhost:5432/diplom?sslmode=disable")
+
+	viper.SetDefault("jwt.secret", "ADJG1HAJD5GADHS3GDKAHJD2GASJHD5KA")
+	viper.SetDefault("jwt.expire", "1h")
 }
 
 func loadFile() {
@@ -99,9 +109,9 @@ func loadFile() {
 
 	var fileLookupError viper.ConfigFileNotFoundError
 	if err := viper.ReadInConfig(); err != nil {
-		if errors.Is(err, &fileLookupError) {
+		if errors.As(err, &fileLookupError) {
 			if err := viper.WriteConfigAs("./config.json"); err != nil {
-				fmt.Println(fmt.Printf("Error writing config file, %s.\n", err))
+				fmt.Printf("Error writing config file: %v\n", err)
 				panic(err)
 			}
 		} else {

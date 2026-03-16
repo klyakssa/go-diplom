@@ -1,0 +1,37 @@
+{"level":"info","timestamp":"2026-03-16T12:53:15.840+0300","caller":"app/app.go:25","msg":"Config initialized:"}
+{"level":"info","timestamp":"2026-03-16T12:53:15.842+0300","caller":"app/app.go:26","msg":"Debug mode: false"}
+{"level":"info","timestamp":"2026-03-16T12:53:15.842+0300","caller":"app/app.go:27","msg":"App name: gophermart"}
+{"level":"info","timestamp":"2026-03-16T12:53:15.842+0300","caller":"app/app.go:29","msg":"Initializing database connection..."}
+{"level":"info","timestamp":"2026-03-16T12:53:15.946+0300","caller":"app/app.go:36","msg":"Starting application..."}
+{"level":"info","timestamp":"2026-03-16T12:53:15.946+0300","caller":"app/app.go:58","msg":"Application started"}
+{"level":"info","timestamp":"2026-03-16T12:53:36.605+0300","caller":"http/router.go:53","msg":"HTTP server shutdown triggered by context"}
+{"level":"info","timestamp":"2026-03-16T12:53:36.605+0300","caller":"app/app.go:61","msg":"Shutting down application..."}
+{"level":"info","timestamp":"2026-03-16T12:53:36.609+0300","caller":"http/router.go:48","msg":"HTTP server started on port 8100"}
+{"level":"info","timestamp":"2026-03-16T12:53:36.610+0300","caller":"app/app.go:67","msg":"Application terminated gracefully"}
+{"level":"info","timestamp":"2026-03-16T12:56:08.636+0300","caller":"app/app.go:25","msg":"Config initialized:"}
+{"level":"info","timestamp":"2026-03-16T12:56:08.638+0300","caller":"app/app.go:26","msg":"Debug mode: false"}
+{"level":"info","timestamp":"2026-03-16T12:56:08.638+0300","caller":"app/app.go:27","msg":"App name: gophermart"}
+{"level":"info","timestamp":"2026-03-16T12:56:08.638+0300","caller":"app/app.go:29","msg":"Initializing database connection..."}
+{"level":"info","timestamp":"2026-03-16T12:56:08.700+0300","caller":"app/app.go:36","msg":"Starting application..."}
+{"level":"info","timestamp":"2026-03-16T12:56:08.700+0300","caller":"app/app.go:58","msg":"Application started"}
+{"level":"info","timestamp":"2026-03-16T13:08:57.856+0300","caller":"http/router.go:53","msg":"HTTP server shutdown triggered by context"}
+{"level":"info","timestamp":"2026-03-16T13:08:57.856+0300","caller":"app/app.go:61","msg":"Shutting down application..."}
+{"level":"info","timestamp":"2026-03-16T13:08:57.857+0300","caller":"http/router.go:48","msg":"HTTP server started on port 8100"}
+{"level":"info","timestamp":"2026-03-16T13:08:57.858+0300","caller":"app/app.go:67","msg":"Application terminated gracefully"}
+{"level":"info","timestamp":"2026-03-16T13:10:41.962+0300","caller":"app/app.go:25","msg":"Config initialized:"}
+{"level":"info","timestamp":"2026-03-16T13:10:41.964+0300","caller":"app/app.go:26","msg":"Debug mode: false"}
+{"level":"info","timestamp":"2026-03-16T13:10:41.964+0300","caller":"app/app.go:27","msg":"App name: gophermart"}
+{"level":"info","timestamp":"2026-03-16T13:10:41.964+0300","caller":"app/app.go:29","msg":"Initializing database connection..."}
+{"level":"info","timestamp":"2026-03-16T13:10:42.019+0300","caller":"app/app.go:36","msg":"Starting application..."}
+{"level":"info","timestamp":"2026-03-16T13:10:42.019+0300","caller":"app/app.go:58","msg":"Application started"}
+{"level":"info","timestamp":"2026-03-16T13:10:42.019+0300","caller":"http/router.go:53","msg":"HTTP server started on port 8100"}
+{"level":"info","timestamp":"2026-03-16T13:11:11.581+0300","caller":"app/app.go:61","msg":"Shutting down application..."}
+{"level":"info","timestamp":"2026-03-16T13:11:11.581+0300","caller":"http/router.go:61","msg":"HTTP server shutdown triggered by context"}
+{"level":"info","timestamp":"2026-03-16T13:11:11.582+0300","caller":"app/app.go:67","msg":"Application terminated gracefully"}
+{"level":"info","timestamp":"2026-03-16T13:11:51.430+0300","caller":"app/app.go:25","msg":"Config initialized:"}
+{"level":"info","timestamp":"2026-03-16T13:11:51.432+0300","caller":"app/app.go:26","msg":"Debug mode: true"}
+{"level":"info","timestamp":"2026-03-16T13:11:51.432+0300","caller":"app/app.go:27","msg":"App name: gophermart"}
+{"level":"info","timestamp":"2026-03-16T13:11:51.432+0300","caller":"app/app.go:29","msg":"Initializing database connection..."}
+{"level":"info","timestamp":"2026-03-16T13:11:51.487+0300","caller":"app/app.go:36","msg":"Starting application..."}
+{"level":"info","timestamp":"2026-03-16T13:11:51.487+0300","caller":"app/app.go:58","msg":"Application started"}
+{"level":"info","timestamp":"2026-03-16T13:11:51.487+0300","caller":"http/router.go:53","msg":"HTTP server started on port 8100"}

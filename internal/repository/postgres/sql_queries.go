@@ -6,10 +6,11 @@ import (
 	"github.com/klyakssa/go-diplom.git/internal/domain/auth"
 )
 
-func (p *PostgresStorage) CreateUser(ctx context.Context, login, password string) error {
-	query := `INSERT INTO users (login, password) VALUES ($1, $2)`
-	_, err := p.DB.ExecContext(ctx, query, login, password)
-	return err
+func (p *PostgresStorage) CreateUser(ctx context.Context, login, password string) (string, error) {
+	query := `INSERT INTO users (login, password) VALUES ($1, $2) RETURNING id`
+	var userid string
+	err := p.DB.QueryRowContext(ctx, query, login, password).Scan(&userid)
+	return userid, err
 }
 
 func (p *PostgresStorage) GetUserByLogin(ctx context.Context, login string) (*auth.User, error) {

@@ -13,6 +13,7 @@ import (
 	"github.com/klyakssa/go-diplom.git/internal/repository/postgres"
 	"github.com/klyakssa/go-diplom.git/internal/service"
 	httptransport "github.com/klyakssa/go-diplom.git/internal/transport/http"
+	"github.com/klyakssa/go-diplom.git/pkg/jwt"
 	"go.uber.org/zap"
 )
 
@@ -34,14 +35,17 @@ func Run(cfg *config.Config) {
 
 	logger.Info("Starting application...")
 
+	// jwt
+	jwtManager := jwt.NewJWTManager(cfg.JWT.Secret, cfg.JWT.Expire)
+
 	// сервис
-	authService := service.NewAuthService(repo)
-	
+	authService := service.NewAuthService(repo, jwtManager)
+
 	// handler
 	authHandler := httptransport.NewAuthHandler(logger, authService)
 
 	// router
-	router := httptransport.NewRouter(logger, cfg.Web)
+	router := httptransport.NewRouter(logger, cfg, jwtManager)
 	router.RegisterRoutes(authHandler)
 
 	go func() {
