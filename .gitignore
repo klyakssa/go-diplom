@@ -21,4 +21,6 @@ vendor/
 # IDEs directories
 .idea
 .vscode
-logs
+
+#logs
+logs/
