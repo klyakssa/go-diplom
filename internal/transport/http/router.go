@@ -30,6 +30,7 @@ func NewRouter(logger *logger.Logger, cfg *config.Config, jwtManager *jwt.JWTMan
 	engine.Use(
 		middleware.Recovery(logger.Logger),
 		middleware.LoggingMiddleware(logger.Logger),
+		middleware.GzipMiddleware(),
 	)
 	return &Router{
 		cfg:    cfg.Web,
