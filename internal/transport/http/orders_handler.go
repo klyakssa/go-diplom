@@ -22,7 +22,7 @@ func NewOrdersHandler(log *logger.Logger, service orders.Service) *OrdersHandler
 	}
 }
 
-func (o *OrdersHandler) GetOrders(c *gin.Context) {
+func (o *OrdersHandler) CreateOrders(c *gin.Context) {
 	var number string
 	if err := c.ShouldBindPlain(&number); err != nil {
 		o.log.Error(invalidRequestMsg, zap.Error(err))

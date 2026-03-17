@@ -67,7 +67,7 @@ func (r *Router) Run(ctx context.Context) error {
 	}
 }
 
-func (r *Router) RegisterRoutes(authHandler *AuthHandler) {
+func (r *Router) RegisterRoutes(authHandler *AuthHandler, ordersHandler *OrdersHandler) {
 	api := r.engine.Group("/api/user")
 	{
 		api.POST("/register", authHandler.Register)
@@ -75,7 +75,7 @@ func (r *Router) RegisterRoutes(authHandler *AuthHandler) {
 		auth := api.Group("/")
 		auth.Use(middleware.AuthMiddleware(r.jwtManager))
 		{
-			// Здесь можно добавлять защищенные маршруты, например:
+			auth.POST("/orders", ordersHandler.CreateOrders)
 		}
 	}
 }

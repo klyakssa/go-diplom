@@ -8,10 +8,13 @@ import (
 )
 
 type OrdersService struct {
+	repo orders.Repository
 }
 
-func NewOrdersService() *OrdersService {
-	return &OrdersService{}
+func NewOrdersService(repo orders.Repository) *OrdersService {
+	return &OrdersService{
+		repo: repo,
+	}
 }
 
 func (o *OrdersService) CreateOrder(ctx context.Context, number string) error {

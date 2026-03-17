@@ -40,13 +40,15 @@ func Run(cfg *config.Config) {
 
 	// сервис
 	authService := service.NewAuthService(repo, jwtManager)
+	ordersService := service.NewOrdersService(repo)
 
 	// handler
 	authHandler := httptransport.NewAuthHandler(logger, authService)
+	ordersHandler := httptransport.NewOrdersHandler(logger, ordersService)
 
 	// router
 	router := httptransport.NewRouter(logger, cfg, jwtManager)
-	router.RegisterRoutes(authHandler)
+	router.RegisterRoutes(authHandler, ordersHandler)
 
 	go func() {
 		if err := router.Run(ctx); err != nil && errors.Is(err, context.Canceled) {
