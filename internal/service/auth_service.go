@@ -54,7 +54,7 @@ func (s *AuthService) Register(ctx context.Context, login, password string) (str
 func (s *AuthService) Login(ctx context.Context, login, password string) (string, error) {
 	user, err := s.repo.GetUserByLogin(ctx, login)
 	if err != nil {
-		return "", auth.ErrInvalidCredentials
+		return "", auth.ErrUserNotFound
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))

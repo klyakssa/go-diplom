@@ -26,13 +26,25 @@ func (o *OrdersHandler) CreateOrders(c *gin.Context) {
 	var number string
 	if err := c.ShouldBindPlain(&number); err != nil {
 		o.log.Error(invalidRequestMsg, zap.Error(err))
-		c.JSON(400, gin.H{"error": invalidRequestMsg})
+		c.JSON(http.StatusBadRequest, gin.H{"error": invalidRequestMsg})
 		return
 	}
 
 	o.log.Debug("CreateOrderRequest", zap.Any("body", number))
 
-	err := o.service.CreateOrder(c.Request.Context(), number)
+	if number == "" {
+		o.log.Warn("Order number is empty")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Order number is empty"})
+		return
+	}
+
+	if len(number) > 1024 {
+		o.log.Warn("Order number is too long")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Order number is too long"})
+		return
+	}
+
+	err := o.service.CreateOrder(c.Request.Context(), number, c.GetString("user_id"))
 	if err != nil {
 		if errors.Is(err, orders.ErrIncorrectOrderNumberFormat) {
 			o.log.Warn("Incorrect order number format", zap.String("number", number))
@@ -54,5 +66,5 @@ func (o *OrdersHandler) CreateOrders(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusAccepted)
+	c.JSON(http.StatusOK, gin.H{"message": "Order added successfully"})
 }

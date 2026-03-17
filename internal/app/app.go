@@ -41,6 +41,8 @@ func Run(cfg *config.Config) {
 	// сервис
 	authService := service.NewAuthService(repo, jwtManager)
 	ordersService := service.NewOrdersService(repo)
+	accrualWorker := service.NewAccrualWorker(logger, repo, cfg.Accrual.Address)
+	go accrualWorker.Start(ctx)
 
 	// handler
 	authHandler := httptransport.NewAuthHandler(logger, authService)

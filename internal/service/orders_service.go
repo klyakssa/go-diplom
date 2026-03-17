@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 
 	"github.com/klyakssa/go-diplom.git/internal/domain/orders"
 	"github.com/klyakssa/go-diplom.git/pkg/luhn"
@@ -17,10 +18,29 @@ func NewOrdersService(repo orders.Repository) *OrdersService {
 	}
 }
 
-func (o *OrdersService) CreateOrder(ctx context.Context, number string) error {
+func (o *OrdersService) CreateOrder(ctx context.Context, number, userID string) error {
+
 	if !luhn.Valid(number) {
 		return orders.ErrIncorrectOrderNumberFormat
 	}
 
+	order, err := o.repo.GetOrderByNumber(ctx, number)
+	if err == nil {
+		if strings.Compare(order.UserID, userID) == 0 {
+			return orders.ErrOrderAlreadyAddedByThisUser
+		}
+		return orders.ErrOrderAlreadyAddedByOtherUser
+	}
+
+	err = o.repo.CreateOrder(ctx, &orders.Order{
+		Number: number,
+		UserID: userID,
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
+
+

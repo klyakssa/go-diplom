@@ -1,11 +1,17 @@
 package luhn
 
+import "strings"
+
 func Valid(numberString string) bool {
+	card := strings.ReplaceAll(numberString, " ", "")
 	sum := 0
-	nDigits := len(numberString)
+	nDigits := len(card)
 	parity := nDigits % 2
 	for i := 0; i <= nDigits-1; i++ {
-		digit := int(numberString[i] - '0')
+		digit := int(card[i] - '0')
+		if digit < 0 || digit > 9 {
+			return false
+		}
 		if i%2 == parity {
 			digit *= 2
 			if digit > 9 {
