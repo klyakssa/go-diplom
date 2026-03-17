@@ -6,7 +6,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,12 +27,9 @@ func (c *CompressWriter) Header() http.Header {
 }
 
 func (c *CompressWriter) Write(b []byte) (int, error) {
-	if strings.Contains(c.w.Header().Get("Content-Type"), "application/json") || strings.Contains(c.w.Header().Get("Content-Type"), "text/html") {
-		c.w.Header().Del("Content-Length")
-		c.w.Header().Set("Content-Encoding", "gzip")
-		return c.zw.Write(b)
-	}
-	return c.w.Write(b)
+	c.w.Header().Del("Content-Length")
+	c.w.Header().Set("Content-Encoding", "gzip")
+	return c.zw.Write(b)
 }
 
 func (c *CompressWriter) WriteHeader(statusCode int) {
