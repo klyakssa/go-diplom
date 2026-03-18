@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/klyakssa/go-diplom.git/internal/domain/balance"
 	"github.com/klyakssa/go-diplom.git/internal/logger"
+	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 )
 
@@ -23,8 +24,8 @@ func NewBalanceHandler(log *logger.Logger, service balance.Service) *BalanceHand
 }
 
 type WithdrawBalanceRequest struct {
-	OrderNumber string `json:"order" binding:"required"`
-	Sum         int    `json:"sum" binding:"required,min=1"`
+	OrderNumber string          `json:"order" binding:"required"`
+	Sum         decimal.Decimal `json:"sum" binding:"required,min=1"`
 }
 
 func (h *BalanceHandler) WithdrawBalance(c *gin.Context) {

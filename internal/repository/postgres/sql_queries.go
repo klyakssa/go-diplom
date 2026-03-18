@@ -139,14 +139,14 @@ func (p *PostgresStorage) GetOrdersByUserID(ctx context.Context, userID string) 
 	return o, err
 }
 
-func (p *PostgresStorage) WithdrawBalance(ctx context.Context, userID string, orderNumber string, amount int) error {
+func (p *PostgresStorage) WithdrawBalance(ctx context.Context, userID string, orderNumber string, amount decimal.Decimal) error {
 	tx, err := p.DB.BeginTxx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	var balance int
+	var balance decimal.Decimal
 	err = tx.QueryRowContext(ctx,
 		`SELECT current FROM balances WHERE user_id = $1 FOR UPDATE`,
 		userID,
@@ -155,7 +155,7 @@ func (p *PostgresStorage) WithdrawBalance(ctx context.Context, userID string, or
 		return err
 	}
 
-	if balance < amount {
+	if balance.LessThan(amount) {
 		return balancePkg.ErrInsufficientFunds
 	}
 

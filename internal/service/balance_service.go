@@ -5,6 +5,7 @@ import (
 
 	"github.com/klyakssa/go-diplom.git/internal/domain/balance"
 	"github.com/klyakssa/go-diplom.git/pkg/luhn"
+	"github.com/shopspring/decimal"
 )
 
 type BalanceService struct {
@@ -15,7 +16,7 @@ func NewBalanceService(repo balance.Repository) *BalanceService {
 	return &BalanceService{repo: repo}
 }
 
-func (b *BalanceService) WithdrawBalance(ctx context.Context, userID string, orderNumber string, amount int) error {
+func (b *BalanceService) WithdrawBalance(ctx context.Context, userID string, orderNumber string, amount decimal.Decimal) error {
 	if !luhn.Valid(orderNumber) {
 		return balance.ErrIncorrectOrderNumberFormat
 	}

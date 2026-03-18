@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 create table if not exists withdraw_history (
     number integer primary key,
-    sum INTEGER NOT NULL,
+    sum INTEGER NOT NULL DEFAULT 0,
     user_id INTEGER REFERENCES users(id) NOT NULL,
     processed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 )
