@@ -4,8 +4,7 @@ import (
 	"context"
 
 	"github.com/klyakssa/go-diplom.git/internal/domain/auth"
-	"github.com/klyakssa/go-diplom.git/internal/domain/balance"
-	balanceErr "github.com/klyakssa/go-diplom.git/internal/domain/balance"
+	balancePkg "github.com/klyakssa/go-diplom.git/internal/domain/balance"
 	"github.com/klyakssa/go-diplom.git/internal/domain/orders"
 )
 
@@ -36,7 +35,7 @@ func (p *PostgresStorage) GetPendingOrders(ctx context.Context) ([]orders.Order,
 	}
 	defer rows.Close()
 
-	var orders_arr []orders.Order
+	var ordersArr []orders.Order
 
 	for rows.Next() {
 		var o orders.Order
@@ -44,10 +43,10 @@ func (p *PostgresStorage) GetPendingOrders(ctx context.Context) ([]orders.Order,
 		if err != nil {
 			return nil, err
 		}
-		orders_arr = append(orders_arr, o)
+		ordersArr = append(ordersArr, o)
 	}
 
-	return orders_arr, nil
+	return ordersArr, nil
 }
 
 func (p *PostgresStorage) ApplyAccrual(ctx context.Context, order *orders.Order) error {
@@ -156,7 +155,7 @@ func (p *PostgresStorage) WithdrawBalance(ctx context.Context, userID string, or
 	}
 
 	if balance < amount {
-		return balanceErr.ErrInsufficientFunds
+		return balancePkg.ErrInsufficientFunds
 	}
 
 	_, err = tx.NamedExecContext(ctx,
@@ -207,8 +206,8 @@ func (p *PostgresStorage) GetBalanceWithdrawn(ctx context.Context, userID string
 	return balance, withdrawn, tx.Commit()
 }
 
-func (p *PostgresStorage) GetWithdrawls(ctx context.Context, userID string) ([]balance.WithdrawHistory, error) {
-	var wh []balance.WithdrawHistory
+func (p *PostgresStorage) GetWithdrawls(ctx context.Context, userID string) ([]balancePkg.WithdrawHistory, error) {
+	var wh []balancePkg.WithdrawHistory
 	err := p.DB.SelectContext(ctx, &wh, `SELECT * FROM withdraw_history WHERE user_id = $1 ORDER BY processed_at`, userID)
 	return wh, err
 }
