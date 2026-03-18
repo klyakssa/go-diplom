@@ -24,7 +24,7 @@ func (b *BalanceService) WithdrawBalance(ctx context.Context, userID string, ord
 	return b.repo.WithdrawBalance(ctx, userID, orderNumber, amount)
 }
 
-func (b *BalanceService) GetBalanceWithdrawn(ctx context.Context, userID string) (int, int, error) {
+func (b *BalanceService) GetBalanceWithdrawn(ctx context.Context, userID string) (int, decimal.Decimal, error) {
 	return b.repo.GetBalanceWithdrawn(ctx, userID)
 }
 

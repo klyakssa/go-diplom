@@ -25,7 +25,7 @@ func NewBalanceHandler(log *logger.Logger, service balance.Service) *BalanceHand
 
 type WithdrawBalanceRequest struct {
 	OrderNumber string          `json:"order" binding:"required"`
-	Sum         decimal.Decimal `json:"sum" binding:"required,min=1"`
+	Sum         decimal.Decimal `json:"sum"`
 }
 
 func (h *BalanceHandler) WithdrawBalance(c *gin.Context) {
@@ -38,6 +38,18 @@ func (h *BalanceHandler) WithdrawBalance(c *gin.Context) {
 	}
 
 	h.log.Debug("WithdrawBalanceRequest", zap.Any("body", req))
+
+	if req.Sum.IsNegative() {
+		h.log.Warn("Sum is negative")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Sum is negative"})
+		return
+	}
+
+	if req.Sum.IsZero() {
+		h.log.Warn("Sum is zero")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Sum is zero"})
+		return
+	}
 
 	if err := h.service.WithdrawBalance(c.Request.Context(), c.GetString("user_id"), req.OrderNumber, req.Sum); err != nil {
 		if errors.Is(err, balance.ErrIncorrectOrderNumberFormat) {
@@ -59,8 +71,8 @@ func (h *BalanceHandler) WithdrawBalance(c *gin.Context) {
 }
 
 type DepositBalanceResponse struct {
-	CurrentBalance int `json:"current"`
-	WithDrawn      int `json:"withdrawn"`
+	CurrentBalance int             `json:"current"`
+	WithDrawn      decimal.Decimal `json:"withdrawn"`
 }
 
 func (h *BalanceHandler) GetBalanceWithdrawn(c *gin.Context) {
