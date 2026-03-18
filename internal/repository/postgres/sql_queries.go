@@ -193,7 +193,7 @@ func (p *PostgresStorage) GetBalanceWithdrawn(ctx context.Context, userID string
 	defer tx.Rollback()
 
 	var withdrawn decimal.Decimal
-	err = tx.GetContext(ctx, &withdrawn, `SELECT SUM(sum) FROM withdraw_history WHERE user_id = $1`, userID)
+	err = tx.GetContext(ctx, &withdrawn, `SELECT COALESCE(SUM(sum), 0)::NUMERIC FROM withdraw_history WHERE user_id = $1`, userID)
 	if err != nil {
 		return 0, decimal.Zero, err
 	}
