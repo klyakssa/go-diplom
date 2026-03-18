@@ -62,7 +62,7 @@ func (w *AccrualWorker) process(ctx context.Context) {
 			zap.String("number", order.Number),
 			zap.String("user_id", order.UserID),
 			zap.String("status", order.Status),
-			zap.Int("accrual", order.Accrual),
+			zap.Any("accrual", order.Accrual),
 		)
 
 		var resp AccrualResponse
