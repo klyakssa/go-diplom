@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/klyakssa/go-diplom.git/internal/domain/orders"
+	ordersPkg "github.com/klyakssa/go-diplom.git/internal/domain/orders"
 	"github.com/klyakssa/go-diplom.git/internal/logger"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
@@ -15,11 +15,11 @@ import (
 type AccrualWorker struct {
 	client    *resty.Client
 	url       string
-	orderRepo orders.Repository
+	orderRepo ordersPkg.Repository
 	log       *logger.Logger
 }
 
-func NewAccrualWorker(log *logger.Logger, orderRepo orders.Repository, url string) *AccrualWorker {
+func NewAccrualWorker(log *logger.Logger, orderRepo ordersPkg.Repository, url string) *AccrualWorker {
 	return &AccrualWorker{
 		client: resty.New().
 			SetTimeout(2 * time.Second),
@@ -102,7 +102,11 @@ func (w *AccrualWorker) process(ctx context.Context) {
 		}
 
 		if resp.Status == "PROCESSED" && resp.Accrual.GreaterThan(decimal.Zero) {
-			err = w.orderRepo.ApplyAccrual(ctx, &order)
+			err = w.orderRepo.ApplyAccrual(ctx, &ordersPkg.Order{
+				Number:  resp.Order,
+				UserID:  order.UserID,
+				Accrual: resp.Accrual,
+			})
 			if err != nil {
 				w.log.Error("failed to add balance or apply accrual", zap.Error(err))
 				continue
