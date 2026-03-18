@@ -41,16 +41,19 @@ func Run(cfg *config.Config) {
 	// сервис
 	authService := service.NewAuthService(repo, jwtManager)
 	ordersService := service.NewOrdersService(repo)
+	balanceService := service.NewBalanceService(repo)
+
 	accrualWorker := service.NewAccrualWorker(logger, repo, cfg.Accrual.Address)
 	go accrualWorker.Start(ctx)
 
 	// handler
 	authHandler := httptransport.NewAuthHandler(logger, authService)
 	ordersHandler := httptransport.NewOrdersHandler(logger, ordersService)
+	balanceHandler := httptransport.NewBalanceHandler(logger, balanceService)
 
 	// router
 	router := httptransport.NewRouter(logger, cfg, jwtManager)
-	router.RegisterRoutes(authHandler, ordersHandler)
+	router.RegisterRoutes(authHandler, ordersHandler, balanceHandler)
 
 	go func() {
 		if err := router.Run(ctx); err != nil && errors.Is(err, context.Canceled) {

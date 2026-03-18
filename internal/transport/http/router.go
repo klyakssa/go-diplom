@@ -67,7 +67,7 @@ func (r *Router) Run(ctx context.Context) error {
 	}
 }
 
-func (r *Router) RegisterRoutes(authHandler *AuthHandler, ordersHandler *OrdersHandler) {
+func (r *Router) RegisterRoutes(authHandler *AuthHandler, ordersHandler *OrdersHandler, balanceHandler *BalanceHandler) {
 	api := r.engine.Group("/api/user")
 	{
 		api.POST("/register", authHandler.Register)
@@ -77,6 +77,9 @@ func (r *Router) RegisterRoutes(authHandler *AuthHandler, ordersHandler *OrdersH
 		{
 			auth.GET("/orders", ordersHandler.GetOrders)
 			auth.POST("/orders", ordersHandler.CreateOrders)
+			auth.POST("/balance/withdraw", balanceHandler.WithdrawBalance)
+			auth.GET("/balance", balanceHandler.GetBalanceWithdrawn)
+			auth.GET("/withdrawals", balanceHandler.GetWithdrawals)
 		}
 	}
 }

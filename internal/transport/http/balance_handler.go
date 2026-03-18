@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,8 +23,8 @@ func NewBalanceHandler(log *logger.Logger, service balance.Service) *BalanceHand
 }
 
 type WithdrawBalanceRequest struct {
-	OrderNumber string `json:"order" binding:"required"` // TODO: validate order number
-	Sum         int    `json:"sum" binding:"required"`
+	OrderNumber string `json:"order" binding:"required"`
+	Sum         int    `json:"sum" binding:"required,min=1"`
 }
 
 func (h *BalanceHandler) WithdrawBalance(c *gin.Context) {
@@ -38,8 +39,50 @@ func (h *BalanceHandler) WithdrawBalance(c *gin.Context) {
 	h.log.Debug("WithdrawBalanceRequest", zap.Any("body", req))
 
 	if err := h.service.WithdrawBalance(c.Request.Context(), c.GetString("user_id"), req.OrderNumber, req.Sum); err != nil {
+		if errors.Is(err, balance.ErrIncorrectOrderNumberFormat) {
+			h.log.Warn("Order not found", zap.String("order", req.OrderNumber))
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Order not found"})
+			return
+		}
+		if errors.Is(err, balance.ErrInsufficientFunds) {
+			h.log.Warn("Not enough balance", zap.String("order", req.OrderNumber))
+			c.JSON(http.StatusPaymentRequired, gin.H{"error": "Not enough balance"})
+			return
+		}
 		h.log.Error("Failed to withdraw balance", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Balance withdrawn successfully"})
+}
+
+type DepositBalanceResponse struct {
+	CurrentBalance int `json:"current"`
+	WithDrawn      int `json:"withdrawn"`
+}
+
+func (h *BalanceHandler) GetBalanceWithdrawn(c *gin.Context) {
+	balance, withdrawn, err := h.service.GetBalanceWithdrawn(c.Request.Context(), c.GetString("user_id"))
+	if err != nil {
+		h.log.Error("Failed to get balance", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, DepositBalanceResponse{
+		CurrentBalance: balance,
+		WithDrawn:      withdrawn,
+	})
+}
+
+func (h *BalanceHandler) GetWithdrawals(c *gin.Context) {
+	withdrawls, err := h.service.GetWithdrawls(c.Request.Context(), c.GetString("user_id"))
+	if err != nil {
+		h.log.Error("Failed to get balance", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, withdrawls)
 }

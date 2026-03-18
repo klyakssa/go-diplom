@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/klyakssa/go-diplom.git/internal/domain/auth"
+	"github.com/klyakssa/go-diplom.git/internal/domain/balance"
+	balanceErr "github.com/klyakssa/go-diplom.git/internal/domain/balance"
 	"github.com/klyakssa/go-diplom.git/internal/domain/orders"
 )
 
@@ -135,4 +137,78 @@ func (p *PostgresStorage) GetOrdersByUserID(ctx context.Context, userID string) 
 	var o []orders.Order
 	err := p.DB.SelectContext(ctx, &o, `SELECT * FROM orders WHERE user_id = $1 ORDER BY uploaded_at`, userID)
 	return o, err
+}
+
+func (p *PostgresStorage) WithdrawBalance(ctx context.Context, userID string, orderNumber string, amount int) error {
+	tx, err := p.DB.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var balance int
+	err = tx.QueryRowContext(ctx,
+		`SELECT current FROM balances WHERE user_id = $1 FOR UPDATE`,
+		userID,
+	).Scan(&balance)
+	if err != nil {
+		return err
+	}
+
+	if balance < amount {
+		return balanceErr.ErrInsufficientFunds
+	}
+
+	_, err = tx.NamedExecContext(ctx,
+		`UPDATE balances SET current = current - :amount WHERE user_id = :user_id`,
+		map[string]interface{}{
+			"amount":  amount,
+			"user_id": userID,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.NamedExecContext(ctx,
+		`INSERT INTO withdraw_history (number, sum, user_id) VALUES (:number, :sum, :user_id)`,
+		map[string]interface{}{
+			"number":  orderNumber,
+			"sum":     amount,
+			"user_id": userID,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func (p *PostgresStorage) GetBalanceWithdrawn(ctx context.Context, userID string) (int, int, error) {
+	tx, err := p.DB.BeginTxx(ctx, nil)
+	if err != nil {
+		return 0, 0, err
+	}
+	defer tx.Rollback()
+
+	var withdrawn int
+	err = tx.GetContext(ctx, &withdrawn, `SELECT SUM(sum) FROM withdraw_history WHERE user_id = $1`, userID)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	var balance int
+	err = tx.GetContext(ctx, &balance, `SELECT current FROM balances WHERE user_id = $1`, userID)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return balance, withdrawn, tx.Commit()
+}
+
+func (p *PostgresStorage) GetWithdrawls(ctx context.Context, userID string) ([]balance.WithdrawHistory, error) {
+	var wh []balance.WithdrawHistory
+	err := p.DB.SelectContext(ctx, &wh, `SELECT * FROM withdraw_history WHERE user_id = $1 ORDER BY processed_at`, userID)
+	return wh, err
 }
