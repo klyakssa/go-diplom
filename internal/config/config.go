@@ -107,7 +107,7 @@ func loadDefault() {
 	viper.SetDefault("debug", false)
 	viper.SetDefault("app.name", AppName)
 
-	viper.SetDefault("logging.level", "debug")
+	viper.SetDefault("logging.level", "error")
 	viper.SetDefault("logging.path", "logs")
 	viper.SetDefault("logging.max-size", 500)
 	viper.SetDefault("logging.max-backups", 3)
