@@ -71,8 +71,8 @@ func (h *BalanceHandler) WithdrawBalance(c *gin.Context) {
 }
 
 type DepositBalanceResponse struct {
-	CurrentBalance decimal.Decimal `json:"current"`
-	WithDrawn      decimal.Decimal `json:"withdrawn"`
+	CurrentBalance float64 `json:"current"`
+	WithDrawn      float64 `json:"withdrawn"`
 }
 
 func (h *BalanceHandler) GetBalanceWithdrawn(c *gin.Context) {
@@ -84,8 +84,8 @@ func (h *BalanceHandler) GetBalanceWithdrawn(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, DepositBalanceResponse{
-		CurrentBalance: balance,
-		WithDrawn:      withdrawn,
+		CurrentBalance: balance.InexactFloat64(),
+		WithDrawn:      withdrawn.InexactFloat64(),
 	})
 }
 
