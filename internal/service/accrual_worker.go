@@ -30,7 +30,7 @@ func NewAccrualWorker(log *logger.Logger, orderRepo orders.Repository, url strin
 }
 
 func (w *AccrualWorker) Start(ctx context.Context) {
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 
 	for {
