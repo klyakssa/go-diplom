@@ -71,7 +71,7 @@ func (h *BalanceHandler) WithdrawBalance(c *gin.Context) {
 }
 
 type DepositBalanceResponse struct {
-	CurrentBalance int             `json:"current"`
+	CurrentBalance decimal.Decimal `json:"current"`
 	WithDrawn      decimal.Decimal `json:"withdrawn"`
 }
 

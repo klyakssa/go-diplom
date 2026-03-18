@@ -185,23 +185,23 @@ func (p *PostgresStorage) WithdrawBalance(ctx context.Context, userID string, or
 	return tx.Commit()
 }
 
-func (p *PostgresStorage) GetBalanceWithdrawn(ctx context.Context, userID string) (int, decimal.Decimal, error) {
+func (p *PostgresStorage) GetBalanceWithdrawn(ctx context.Context, userID string) (decimal.Decimal, decimal.Decimal, error) {
 	tx, err := p.DB.BeginTxx(ctx, nil)
 	if err != nil {
-		return 0, decimal.Zero, err
+		return decimal.Zero, decimal.Zero, err
 	}
 	defer tx.Rollback()
 
 	var withdrawn decimal.Decimal
 	err = tx.GetContext(ctx, &withdrawn, `SELECT COALESCE(SUM(sum), 0)::NUMERIC FROM withdraw_history WHERE user_id = $1`, userID)
 	if err != nil {
-		return 0, decimal.Zero, err
+		return decimal.Zero, decimal.Zero, err
 	}
 
-	var balance int
+	var balance decimal.Decimal
 	err = tx.GetContext(ctx, &balance, `SELECT current FROM balances WHERE user_id = $1`, userID)
 	if err != nil {
-		return 0, decimal.Zero, err
+		return decimal.Zero, decimal.Zero, err
 	}
 
 	return balance, withdrawn, tx.Commit()
