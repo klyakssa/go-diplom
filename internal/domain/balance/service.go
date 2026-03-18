@@ -2,6 +2,6 @@ package balance
 
 import "context"
 
-type Repository interface {
+type Service interface {
 	WithdrawBalance(ctx context.Context, userID string, orderNumber string, amount int) error
 }

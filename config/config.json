@@ -15,7 +15,7 @@
     "path": "logs"
   },
   "postdb": {
-    "connection-string": "postgres://test:11@localhost:5432/diplom?sslmode=disable"
+    "connection-string": "postgres://postgres:11@localhost:5432/test_prac?sslmode=disable"
   },
   "web": {
     "port": 8100

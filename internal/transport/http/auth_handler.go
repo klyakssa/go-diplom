@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/klyakssa/go-diplom.git/internal/domain/auth"
@@ -29,7 +30,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	var req registerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.log.Error(invalidRequestMsg, zap.Error(err))
-		c.JSON(400, gin.H{"error": invalidRequestMsg})
+		c.JSON(http.StatusBadRequest, gin.H{"error": invalidRequestMsg})
 		return
 	}
 
@@ -39,25 +40,25 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, auth.ErrUserAlreadyExists) {
 			h.log.Warn("User already exists", zap.String("login", req.Login))
-			c.JSON(409, gin.H{"error": "User already exists"})
+			c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
 			return
 		}
 		if errors.Is(err, auth.ErrPasswordTooLong) {
 			h.log.Warn("Password too long", zap.String("login", req.Login))
-			c.JSON(400, gin.H{"error": "Password is too long"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Password is too long"})
 			return
 		}
 		if errors.Is(err, auth.ErrPasswordTooShort) {
 			h.log.Warn("Password too short", zap.String("login", req.Login))
-			c.JSON(400, gin.H{"error": "Password is too short"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Password is too short"})
 			return
 		}
 		h.log.Error("Failed to register user", zap.Error(err))
-		c.JSON(500, gin.H{"error": "Internal server error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
 
-	c.JSON(200, &gin.H{"token": token})
+	c.JSON(http.StatusOK, &gin.H{"token": token})
 }
 
 type loginRequest struct {
@@ -69,7 +70,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	var req loginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.log.Error(invalidRequestMsg, zap.Error(err))
-		c.JSON(400, gin.H{"error": invalidRequestMsg})
+		c.JSON(http.StatusBadRequest, gin.H{"error": invalidRequestMsg})
 		return
 	}
 
@@ -79,18 +80,18 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, auth.ErrUserNotFound) {
 			h.log.Warn("User not found", zap.String("login", req.Login))
-			c.JSON(404, gin.H{"error": "User not found"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 			return
 		}
 		if errors.Is(err, auth.ErrInvalidCredentials) {
 			h.log.Warn("Invalid login or password", zap.String("login", req.Login))
-			c.JSON(401, gin.H{"error": "Invalid login or password"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid login or password"})
 			return
 		}
 		h.log.Error("Failed to login user", zap.Error(err))
-		c.JSON(500, gin.H{"error": "Internal server error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return
 	}
 
-	c.JSON(200, &gin.H{"token": token})
+	c.JSON(http.StatusOK, &gin.H{"token": token})
 }

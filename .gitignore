@@ -26,3 +26,6 @@ vendor/
 #logs
 logs/
 *.log
+
+#config
+config/*.json

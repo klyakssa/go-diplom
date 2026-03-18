@@ -55,8 +55,6 @@ func (w *AccrualWorker) process(ctx context.Context) {
 		return
 	}
 
-	w.log.Debug("pending orders received", zap.Int("count", len(orders)))
-
 	for _, order := range orders {
 
 		w.log.Debug("get order",

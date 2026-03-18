@@ -43,4 +43,12 @@ func (o *OrdersService) CreateOrder(ctx context.Context, number, userID string) 
 	return nil
 }
 
+func (o *OrdersService) GetOrders(ctx context.Context, userID string) ([]orders.Order, error) {
 
+	orders, err := o.repo.GetOrdersByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return orders, nil
+}

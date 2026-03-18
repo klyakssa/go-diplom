@@ -117,7 +117,7 @@ func loadDefault() {
 
 	viper.SetDefault("accrual.address", "http://localhost:8080")
 
-	viper.SetDefault("postdb.connection-string", "postgres://test:11@localhost:5432/diplom?sslmode=disable")
+	viper.SetDefault("postdb.connection-string", "postgres://test:11@localhost:5432/diplom?sslmode=disable") //postgres://postgres:11@localhost:5432/test_prac?sslmode=disable
 
 	viper.SetDefault("jwt.secret", "ADJG1HAJD5GADHS3GDKAHJD2GASJHD5KA")
 	viper.SetDefault("jwt.expire", "1h")

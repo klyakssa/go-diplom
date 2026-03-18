@@ -130,3 +130,9 @@ func (p *PostgresStorage) GetOrderByNumber(ctx context.Context, number string) (
 	err := p.DB.GetContext(ctx, &o, `SELECT * FROM orders WHERE number = $1`, number)
 	return &o, err
 }
+
+func (p *PostgresStorage) GetOrdersByUserID(ctx context.Context, userID string) ([]orders.Order, error) {
+	var o []orders.Order
+	err := p.DB.SelectContext(ctx, &o, `SELECT * FROM orders WHERE user_id = $1 ORDER BY uploaded_at`, userID)
+	return o, err
+}

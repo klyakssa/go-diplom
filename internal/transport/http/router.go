@@ -75,6 +75,7 @@ func (r *Router) RegisterRoutes(authHandler *AuthHandler, ordersHandler *OrdersH
 		auth := api.Group("/")
 		auth.Use(middleware.AuthMiddleware(r.jwtManager))
 		{
+			auth.GET("/orders", ordersHandler.GetOrders)
 			auth.POST("/orders", ordersHandler.CreateOrders)
 		}
 	}

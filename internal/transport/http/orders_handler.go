@@ -68,3 +68,20 @@ func (o *OrdersHandler) CreateOrders(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Order added successfully"})
 }
+
+func (o *OrdersHandler) GetOrders(c *gin.Context) {
+	orders, err := o.service.GetOrders(c.Request.Context(), c.GetString("user_id"))
+	if err != nil {
+		o.log.Error("Failed to get orders", zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	if len(orders) == 0 {
+		o.log.Warn("Orders not found")
+		c.JSON(http.StatusNoContent, gin.H{"error": "Orders not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, orders)
+}

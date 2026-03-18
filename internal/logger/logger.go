@@ -64,7 +64,11 @@ func configure(cfg *config.LoggingConfiguration, name string) zapcore.Core {
 
 	consoleWriter := zapcore.Lock(os.Stdout)
 	jsonEncoder := zapcore.NewJSONEncoder(enconfig)
-	consoleEncoder := zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig())
+	consoleConfig := zap.NewDevelopmentEncoderConfig()
+	consoleConfig.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+		enc.AppendString(t.Format("2006-01-02 15:04:05"))
+	}
+	consoleEncoder := zapcore.NewConsoleEncoder(consoleConfig)
 
 	return zapcore.NewTee(
 		zapcore.NewCore(consoleEncoder, consoleWriter, priority),
