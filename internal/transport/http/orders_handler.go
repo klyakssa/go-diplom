@@ -66,7 +66,7 @@ func (o *OrdersHandler) CreateOrders(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Order added successfully"})
+	c.JSON(http.StatusAccepted, gin.H{"message": "Order added successfully"})
 }
 
 func (o *OrdersHandler) GetOrders(c *gin.Context) {
