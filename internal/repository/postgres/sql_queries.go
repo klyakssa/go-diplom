@@ -7,6 +7,7 @@ import (
 	balancePkg "github.com/klyakssa/go-diplom.git/internal/domain/balance"
 	"github.com/klyakssa/go-diplom.git/internal/domain/orders"
 	"github.com/shopspring/decimal"
+	"go.uber.org/zap"
 )
 
 func (p *PostgresStorage) CreateUser(ctx context.Context, login, password string) (string, error) {
@@ -80,6 +81,17 @@ func (p *PostgresStorage) ApplyAccrual(ctx context.Context, order *orders.Order)
 	if err != nil {
 		return err
 	}
+
+	var balance2 decimal.Decimal
+	err = tx.QueryRowContext(ctx,
+		`SELECT current FROM balances WHERE user_id = $1`,
+		order.UserID,
+	).Scan(&balance2)
+	if err != nil {
+		return err
+	}
+
+	p.l.Warn("balance updated", zap.String("user_id", order.UserID), zap.String("amount", order.Accrual.String()), zap.String("balance", balance2.String()))
 
 	_, err = tx.NamedExecContext(ctx,
 		`UPDATE orders SET is_accrualed = TRUE WHERE number = :number`,
@@ -169,6 +181,17 @@ func (p *PostgresStorage) WithdrawBalance(ctx context.Context, userID string, or
 	if err != nil {
 		return err
 	}
+
+	var balance2 decimal.Decimal
+	err = tx.QueryRowContext(ctx,
+		`SELECT current FROM balances WHERE user_id = $1`,
+		userID,
+	).Scan(&balance2)
+	if err != nil {
+		return err
+	}
+
+	p.l.Warn("balance updated", zap.String("user_id", userID), zap.String("amount", amount.String()), zap.String("balance", balance2.String()))
 
 	_, err = tx.NamedExecContext(ctx,
 		`INSERT INTO withdraw_history (number, sum, user_id) VALUES (:number, :sum, :user_id)`,
