@@ -6,6 +6,7 @@ import (
 	"github.com/klyakssa/go-diplom.git/internal/domain/auth"
 	balancePkg "github.com/klyakssa/go-diplom.git/internal/domain/balance"
 	"github.com/klyakssa/go-diplom.git/internal/domain/orders"
+	"github.com/shopspring/decimal"
 )
 
 func (p *PostgresStorage) CreateUser(ctx context.Context, login, password string) (string, error) {
@@ -93,7 +94,7 @@ func (p *PostgresStorage) ApplyAccrual(ctx context.Context, order *orders.Order)
 	return tx.Commit()
 }
 
-func (p *PostgresStorage) UpdateOrder(ctx context.Context, number, status string, accrual int) error {
+func (p *PostgresStorage) UpdateOrder(ctx context.Context, number, status string, accrual decimal.Decimal) error {
 	_, err := p.DB.NamedExecContext(ctx,
 		`UPDATE orders SET status = :status, accrual = :accrual WHERE number = :number`,
 		map[string]interface{}{

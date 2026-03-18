@@ -8,6 +8,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/klyakssa/go-diplom.git/internal/domain/orders"
 	"github.com/klyakssa/go-diplom.git/internal/logger"
+	"github.com/shopspring/decimal"
 	"go.uber.org/zap"
 )
 
@@ -43,9 +44,9 @@ func (w *AccrualWorker) Start(ctx context.Context) {
 }
 
 type AccrualResponse struct {
-	Order   string `json:"order"`
-	Status  string `json:"status"`
-	Accrual int    `json:"accrual"`
+	Order   string          `json:"order"`
+	Status  string          `json:"status"`
+	Accrual decimal.Decimal `json:"accrual"`
 }
 
 func (w *AccrualWorker) process(ctx context.Context) {
@@ -90,7 +91,7 @@ func (w *AccrualWorker) process(ctx context.Context) {
 		w.log.Debug("accrual response received",
 			zap.String("order", resp.Order),
 			zap.String("status", resp.Status),
-			zap.Int("accrual", resp.Accrual),
+			zap.Any("accrual", resp.Accrual),
 			zap.Int("code", res.StatusCode()),
 		)
 
@@ -100,7 +101,7 @@ func (w *AccrualWorker) process(ctx context.Context) {
 			continue
 		}
 
-		if resp.Status == "PROCESSED" && resp.Accrual > 0 {
+		if resp.Status == "PROCESSED" && resp.Accrual.GreaterThan(decimal.Zero) {
 			err = w.orderRepo.ApplyAccrual(ctx, &order)
 			if err != nil {
 				w.log.Error("failed to add balance or apply accrual", zap.Error(err))
