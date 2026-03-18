@@ -71,7 +71,7 @@ func (p *PostgresStorage) ApplyAccrual(ctx context.Context, order *orders.Order)
 	}
 
 	_, err = tx.NamedExecContext(ctx,
-		`UPDATE balances SET current = current + :balance WHERE id = :id`,
+		`UPDATE balances SET current = current + :balance WHERE user_id = :id`,
 		map[string]interface{}{
 			"balance": order.Accrual,
 			"id":      order.UserID,

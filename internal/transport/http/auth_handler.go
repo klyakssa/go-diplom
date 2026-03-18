@@ -103,5 +103,15 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, &gin.H{"token": token})
+	c.SetCookieData(
+		&http.Cookie{
+			Name:     "auth_token",
+			Value:    token,
+			Path:     "/",
+			MaxAge:   3600,
+			HttpOnly: true,
+			Secure:   false,
+		},
+	)
+	c.Status(http.StatusOK)
 }
