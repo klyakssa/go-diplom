@@ -32,9 +32,6 @@ func (s *AuthService) Register(ctx context.Context, login, password string) (str
 		if errors.Is(err, bcrypt.ErrPasswordTooLong) {
 			return "", auth.ErrPasswordTooLong
 		}
-		if errors.Is(err, bcrypt.ErrHashTooShort) {
-			return "", auth.ErrPasswordTooShort
-		}
 		return "", err
 	}
 

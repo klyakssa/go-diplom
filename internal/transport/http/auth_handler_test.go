@@ -1,149 +1,134 @@
 package http_test
 
 import (
-	"context"
+	"bytes"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-resty/resty/v2"
-	"github.com/klyakssa/go-diplom.git/internal/config"
+	"github.com/golang/mock/gomock"
 	"github.com/klyakssa/go-diplom.git/internal/domain/auth"
+	mock_auth "github.com/klyakssa/go-diplom.git/internal/domain/auth/mocks"
 	"github.com/klyakssa/go-diplom.git/internal/logger"
 	httptransport "github.com/klyakssa/go-diplom.git/internal/transport/http"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"go.uber.org/zap"
 )
-
-type mockAuthService struct {
-	mock.Mock
-}
-
-func (m *mockAuthService) Register(ctx context.Context, login, password string) (string, error) {
-	args := m.Called(ctx, login, password)
-	return args.String(0), args.Error(1)
-}
-
-func (m *mockAuthService) Login(ctx context.Context, login, password string) (string, error) {
-	args := m.Called(ctx, login, password)
-	return args.String(0), args.Error(1)
-}
-
-func setupServer(service auth.Service) *httptest.Server {
-	gin.SetMode(gin.TestMode)
-
-	log := logger.NewLogger(&config.LoggingConfiguration{
-		Level:      "debug",
-		Path:       "",
-		MaxSize:    10,
-		MaxBackups: 3,
-		MaxAge:     7,
-	}, "test")
-
-	handler := httptransport.NewAuthHandler(log, service)
-
-	router := gin.New()
-	router.POST("/register", handler.Register)
-	router.POST("/login", handler.Login)
-
-	return httptest.NewServer(router)
-}
 
 func TestAuthHandler_Register(t *testing.T) {
 
-	service := new(mockAuthService)
-	server := setupServer(service)
-	defer server.Close()
+	type mockBehavior func(s *mock_auth.MockService, login, password string)
 
-	client := resty.New().SetBaseURL(server.URL)
+	logger := &logger.Logger{Logger: zap.NewNop()}
 
 	tests := []struct {
-		name       string
-		body       string
-		mock       func()
-		statusCode int
+		name           string
+		body           string
+		mock           mockBehavior
+		statusCode     int
+		expectedCookie string
 	}{
 		{
 			name: "success register",
 			body: `{"login":"user","password":"pass"}`,
-			mock: func() {
-				service.On("Register", mock.Anything, "user", "pass").
-					Return("token123", nil).Once()
+			mock: func(s *mock_auth.MockService, login, password string) {
+				s.EXPECT().Register(gomock.Any(), login, password).Return("1", nil)
 			},
-			statusCode: 200,
+			statusCode:     200,
+			expectedCookie: "1",
 		},
 		{
 			name: "user exists",
 			body: `{"login":"user","password":"pass"}`,
-			mock: func() {
-				service.On("Register", mock.Anything, "user", "pass").
-					Return("", auth.ErrUserAlreadyExists).Once()
+			mock: func(s *mock_auth.MockService, login, password string) {
+				s.EXPECT().Register(gomock.Any(), login, password).Return("", auth.ErrUserAlreadyExists)
 			},
-			statusCode: 409,
+			statusCode:     409,
+			expectedCookie: "",
 		},
 		{
-			name:       "invalid json",
-			body:       `{}`,
-			mock:       func() {},
-			statusCode: 400,
+			name:           "invalid json",
+			body:           `{}`,
+			mock:           func(s *mock_auth.MockService, login, password string) {},
+			statusCode:     400,
+			expectedCookie: "",
 		},
 	}
 
 	for _, tt := range tests {
-
 		t.Run(tt.name, func(t *testing.T) {
+			c := gomock.NewController(t)
+			defer c.Finish()
 
-			service.ExpectedCalls = nil
-			tt.mock()
+			auth := mock_auth.NewMockService(c)
+			tt.mock(auth, "user", "pass")
 
-			resp, err := client.R().
-				SetHeader("Content-Type", "application/json").
-				SetBody(tt.body).
-				Post("/register")
+			handler := httptransport.NewAuthHandler(logger, auth)
 
-			assert.NoError(t, err)
-			assert.Equal(t, tt.statusCode, resp.StatusCode())
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.POST("/register", handler.Register)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/register", bytes.NewBufferString(tt.body))
+			req.Header.Set("Content-Type", "application/json")
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.statusCode, w.Code)
+
+			if tt.expectedCookie != "" {
+				cookies := w.Result().Cookies()
+				var token string
+				for _, c := range cookies {
+					if c.Name == "auth_token" {
+						token = c.Value
+					}
+				}
+
+				assert.Equal(t, tt.expectedCookie, token)
+			}
 		})
 	}
 }
 
 func TestAuthHandler_Login(t *testing.T) {
 
-	service := new(mockAuthService)
-	server := setupServer(service)
-	defer server.Close()
+	type mockBehavior func(s *mock_auth.MockService, login, password string)
 
-	client := resty.New().SetBaseURL(server.URL)
+	logger := &logger.Logger{Logger: zap.NewNop()}
 
 	tests := []struct {
-		name       string
-		body       string
-		mock       func()
-		statusCode int
+		name           string
+		body           string
+		mock           mockBehavior
+		statusCode     int
+		expectedCookie string
 	}{
 		{
 			name: "success login",
 			body: `{"login":"user","password":"pass"}`,
-			mock: func() {
-				service.On("Login", mock.Anything, "user", "pass").
-					Return("token123", nil).Once()
+			mock: func(s *mock_auth.MockService, login, password string) {
+				s.EXPECT().Login(gomock.Any(), login, password).Return("1", nil)
 			},
-			statusCode: 200,
+			statusCode:     200,
+			expectedCookie: "1",
 		},
 		{
 			name: "invalid credentials",
 			body: `{"login":"user","password":"pass"}`,
-			mock: func() {
-				service.On("Login", mock.Anything, "user", "pass").
-					Return("", auth.ErrInvalidCredentials).Once()
+			mock: func(s *mock_auth.MockService, login, password string) {
+				s.EXPECT().Login(gomock.Any(), login, password).Return("", auth.ErrInvalidCredentials)
 			},
-			statusCode: 401,
+			statusCode:     401,
+			expectedCookie: "",
 		},
 		{
-			name:       "invalid json",
-			body:       `{}`,
-			mock:       func() {},
-			statusCode: 400,
+			name:           "invalid json",
+			body:           `{}`,
+			mock:           func(s *mock_auth.MockService, login, password string) {},
+			statusCode:     400,
+			expectedCookie: "",
 		},
 	}
 
@@ -151,16 +136,37 @@ func TestAuthHandler_Login(t *testing.T) {
 
 		t.Run(tt.name, func(t *testing.T) {
 
-			service.ExpectedCalls = nil
-			tt.mock()
+			c := gomock.NewController(t)
+			defer c.Finish()
 
-			resp, err := client.R().
-				SetHeader("Content-Type", "application/json").
-				SetBody(tt.body).
-				Post("/login")
+			auth := mock_auth.NewMockService(c)
+			tt.mock(auth, "user", "pass")
 
-			assert.NoError(t, err)
-			assert.Equal(t, tt.statusCode, resp.StatusCode())
+			handler := httptransport.NewAuthHandler(logger, auth)
+
+			gin.SetMode(gin.TestMode)
+			r := gin.New()
+			r.POST("/login", handler.Login)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/login", bytes.NewBufferString(tt.body))
+			req.Header.Set("Content-Type", "application/json")
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.statusCode, w.Code)
+
+			if tt.expectedCookie != "" {
+				cookies := w.Result().Cookies()
+				var token string
+				for _, c := range cookies {
+					if c.Name == "auth_token" {
+						token = c.Value
+					}
+				}
+
+				assert.Equal(t, tt.expectedCookie, token)
+			}
 		})
 	}
 }

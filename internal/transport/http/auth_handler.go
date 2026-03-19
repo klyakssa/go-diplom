@@ -48,11 +48,6 @@ func (h *AuthHandler) Register(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Password is too long"})
 			return
 		}
-		if errors.Is(err, auth.ErrPasswordTooShort) {
-			h.log.Warn("Password too short", zap.String("login", req.Login))
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Password is too short"})
-			return
-		}
 		h.log.Error("Failed to register user", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 		return

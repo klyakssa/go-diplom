@@ -16,5 +16,11 @@ type WithdrawHistory struct {
 	OrderNumber string          `json:"order" db:"number"`
 	Sum         decimal.Decimal `json:"sum" db:"sum"`
 	UserID      int             `json:"-" db:"user_id"`
-	ProcessedAt time.Time       `json:"processed_at" db:"processed_at"`
+	ProcessedAt TimeRFC3339     `json:"processed_at" db:"processed_at"`
+}
+
+type TimeRFC3339 time.Time
+
+func (t TimeRFC3339) MarshalJSON() ([]byte, error) {
+	return []byte(`"` + time.Time(t).Format(time.RFC3339) + `"`), nil
 }

@@ -6,6 +6,8 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+//go:generate mockgen -source=repository.go -destination=mocks/repository.go
+
 type Repository interface {
 	GetOrderByNumber(ctx context.Context, number string) (*Order, error)
 	CreateOrder(ctx context.Context, order *Order) error

@@ -6,6 +6,8 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+//go:generate mockgen -source=repository.go -destination=mocks/repository.go
+
 type Repository interface {
 	WithdrawBalance(ctx context.Context, userID string, orderNumber string, amount decimal.Decimal) error
 	GetBalanceWithdrawn(ctx context.Context, userID string) (decimal.Decimal, decimal.Decimal, error)

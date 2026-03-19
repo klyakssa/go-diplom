@@ -2,165 +2,149 @@ package service_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
+	"github.com/golang/mock/gomock"
 	"github.com/klyakssa/go-diplom.git/internal/domain/auth"
+	mock_auth "github.com/klyakssa/go-diplom.git/internal/domain/auth/mocks"
 	"github.com/klyakssa/go-diplom.git/internal/service"
 	"github.com/klyakssa/go-diplom.git/pkg/jwt"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type MockAuthRepository struct {
-	mock.Mock
-}
-
-func (m *MockAuthRepository) GetUserByLogin(ctx context.Context, login string) (*auth.User, error) {
-	args := m.Called(ctx, login)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*auth.User), args.Error(1)
-}
-
-func (m *MockAuthRepository) CreateUser(ctx context.Context, login, password string) (string, error) {
-	args := m.Called(ctx, login, password)
-	return args.String(0), args.Error(1)
-}
-
 func TestAuthService_Register(t *testing.T) {
-
-	repo := new(MockAuthRepository)
 	jwtManager := jwt.NewJWTManager("secret", time.Hour)
 
-	s := service.NewAuthService(repo, jwtManager)
+	type mockBehaviour func(service *mock_auth.MockRepository, login string)
 
 	tests := []struct {
 		name     string
 		login    string
 		password string
-		mock     func()
-		wantErr  bool
+		moke     mockBehaviour
+		error    error
 	}{
 		{
 			name:     "success register",
 			login:    "user",
 			password: "password123",
-			mock: func() {
-				repo.On("GetUserByLogin", mock.Anything, "user").
-					Return(nil, auth.ErrUserNotFound)
-
-				repo.On("CreateUser", mock.Anything, "user", mock.Anything).
-					Return("", nil)
+			moke: func(service *mock_auth.MockRepository, login string) {
+				service.EXPECT().GetUserByLogin(gomock.Any(), login).Return(nil, fmt.Errorf("user not found"))
+				service.EXPECT().CreateUser(gomock.Any(), login, gomock.Any()).Return("1", nil)
 			},
-			wantErr: false,
+			error: nil,
 		},
 		{
 			name:     "user already exists",
 			login:    "user",
 			password: "password123",
-			mock: func() {
-				repo.On("GetUserByLogin", mock.Anything, "user").
-					Return(&auth.User{Login: "user"}, nil)
+			moke: func(service *mock_auth.MockRepository, login string) {
+				service.EXPECT().GetUserByLogin(gomock.Any(), login).Return(nil, nil)
 			},
-			wantErr: true,
+			error: auth.ErrUserAlreadyExists,
+		},
+		{
+			name:     "password is too long",
+			login:    "user",
+			password: "FASFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+			moke: func(service *mock_auth.MockRepository, login string) {
+				service.EXPECT().GetUserByLogin(gomock.Any(), login).Return(nil, fmt.Errorf("error"))
+			},
+			error: auth.ErrPasswordTooLong,
+		},
+		{
+			name:     "login is too long",
+			login:    "usersadddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+			password: "FASFA",
+			moke:     func(service *mock_auth.MockRepository, login string) {},
+			error:    auth.ErrLoginTooLong,
 		},
 	}
-
 	for _, tt := range tests {
-
 		t.Run(tt.name, func(t *testing.T) {
+			c := gomock.NewController(t)
+			defer c.Finish()
 
-			repo.ExpectedCalls = nil
-			tt.mock()
+			authRepository := mock_auth.NewMockRepository(c)
+			tt.moke(authRepository, tt.login)
 
-			token, err := s.Register(context.Background(), tt.login, tt.password)
+			authService := service.NewAuthService(authRepository, jwtManager)
 
-			if tt.wantErr {
-				assert.Error(t, err)
-				return
+			token, err := authService.Register(context.Background(), tt.login, tt.password)
+
+			assert.ErrorIs(t, err, tt.error, "got error %v, want %v", err, tt.error)
+
+			if token != "" {
+				_, err = jwtManager.VerifyToken(token)
+				assert.NoError(t, err, "verify token error %v", err)
 			}
-
-			assert.NoError(t, err)
-			assert.NotEmpty(t, token)
-
 		})
 	}
 }
 
 func TestAuthService_Login(t *testing.T) {
-
-	repo := new(MockAuthRepository)
 	jwtManager := jwt.NewJWTManager("secret", time.Hour)
 
-	s := service.NewAuthService(repo, jwtManager)
-
-	hash, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+	type mockBehaviour func(service *mock_auth.MockRepository, login string, password string)
 
 	tests := []struct {
 		name     string
 		login    string
 		password string
-		mock     func()
-		wantErr  bool
+		moke     mockBehaviour
+		error    error
 	}{
 		{
 			name:     "success login",
 			login:    "user",
 			password: "password123",
-			mock: func() {
-				repo.On("GetUserByLogin", mock.Anything, "user").
-					Return(&auth.User{
-						Login:    "user",
-						Password: string(hash),
-					}, nil)
+			moke: func(service *mock_auth.MockRepository, login string, password string) {
+				hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+				service.EXPECT().GetUserByLogin(gomock.Any(), login).Return(&auth.User{ID: "1", Login: "user", Password: string(hash)}, nil)
 			},
-			wantErr: false,
-		},
-		{
-			name:     "invalid credentials",
-			login:    "user",
-			password: "wrong",
-			mock: func() {
-				repo.On("GetUserByLogin", mock.Anything, "user").
-					Return(&auth.User{
-						Login:    "user",
-						Password: string(hash),
-					}, nil)
-			},
-			wantErr: true,
+			error: nil,
 		},
 		{
 			name:     "user not found",
 			login:    "user",
-			password: "password",
-			mock: func() {
-				repo.On("GetUserByLogin", mock.Anything, "user").
-					Return(nil, auth.ErrUserNotFound)
+			password: "password123",
+			moke: func(service *mock_auth.MockRepository, login string, password string) {
+				service.EXPECT().GetUserByLogin(gomock.Any(), login).Return(nil, fmt.Errorf("user not found"))
 			},
-			wantErr: true,
+			error: auth.ErrUserNotFound,
+		},
+		{
+			name:     "invalid credentials",
+			login:    "user",
+			password: "password123",
+			moke: func(service *mock_auth.MockRepository, login string, password string) {
+				hash, _ := bcrypt.GenerateFromPassword([]byte("asd"), bcrypt.DefaultCost)
+				service.EXPECT().GetUserByLogin(gomock.Any(), login).Return(&auth.User{ID: "1", Login: "user", Password: string(hash)}, nil)
+			},
+			error: auth.ErrInvalidCredentials,
 		},
 	}
-
 	for _, tt := range tests {
-
 		t.Run(tt.name, func(t *testing.T) {
+			c := gomock.NewController(t)
+			defer c.Finish()
 
-			repo.ExpectedCalls = nil
-			tt.mock()
+			authRepository := mock_auth.NewMockRepository(c)
+			tt.moke(authRepository, tt.login, tt.password)
 
-			token, err := s.Login(context.Background(), tt.login, tt.password)
+			authService := service.NewAuthService(authRepository, jwtManager)
 
-			if tt.wantErr {
-				assert.Error(t, err)
-				return
+			token, err := authService.Login(context.Background(), tt.login, tt.password)
+
+			assert.ErrorIs(t, err, tt.error, "got error %v, want %v", err, tt.error)
+
+			if token != "" {
+				_, err = jwtManager.VerifyToken(token)
+				assert.NoError(t, err, "verify token error %v", err)
 			}
-
-			assert.NoError(t, err)
-			assert.NotEmpty(t, token)
-
 		})
 	}
 }
