@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Recovery is a middleware that recovers from panics
 func Recovery(log *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 

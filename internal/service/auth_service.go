@@ -9,15 +9,18 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// AuthService
 type AuthService struct {
 	repo       auth.Repository
 	jwtManager *jwt.JWTManager
 }
 
+// NewAuthService creates a new instance of AuthService
 func NewAuthService(repo auth.Repository, jwtManager *jwt.JWTManager) *AuthService {
 	return &AuthService{repo: repo, jwtManager: jwtManager}
 }
 
+// Register registers a new user
 func (s *AuthService) Register(ctx context.Context, login, password string) (string, error) {
 	if len(login) > 255 {
 		return "", auth.ErrLoginTooLong
@@ -48,6 +51,7 @@ func (s *AuthService) Register(ctx context.Context, login, password string) (str
 	return token, nil
 }
 
+// Login logs in a user
 func (s *AuthService) Login(ctx context.Context, login, password string) (string, error) {
 	user, err := s.repo.GetUserByLogin(ctx, login)
 	if err != nil {

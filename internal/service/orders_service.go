@@ -8,16 +8,19 @@ import (
 	"github.com/klyakssa/go-diplom.git/pkg/luhn"
 )
 
+// OrdersService
 type OrdersService struct {
 	repo orders.Repository
 }
 
+// NewOrdersService returns instance of new OrdersService
 func NewOrdersService(repo orders.Repository) *OrdersService {
 	return &OrdersService{
 		repo: repo,
 	}
 }
 
+// CreateOrder creates new order
 func (o *OrdersService) CreateOrder(ctx context.Context, number, userID string) error {
 
 	if !luhn.Valid(number) {
@@ -43,6 +46,7 @@ func (o *OrdersService) CreateOrder(ctx context.Context, number, userID string) 
 	return nil
 }
 
+// GetOrders returns all orders
 func (o *OrdersService) GetOrders(ctx context.Context, userID string) ([]orders.Order, error) {
 
 	orders, err := o.repo.GetOrdersByUserID(ctx, userID)

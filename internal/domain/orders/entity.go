@@ -6,11 +6,12 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// Order struct
 type Order struct {
-	Number      string          `json:"number" db:"number"`
-	Status      string          `json:"status" db:"status"`
-	Accrual     decimal.Decimal `json:"accrual,omitempty" db:"accrual"`
-	UploadAt    time.Time       `json:"uploaded_at" db:"uploaded_at"`
-	UserID      string          `json:"-" db:"user_id"`
-	IsAccrualed bool            `json:"-" db:"is_accrualed"`
+	Number      string          `json:"number" db:"number"`             // number of order
+	Status      string          `json:"status" db:"status"`             // status of order
+	Accrual     decimal.Decimal `json:"accrual,omitempty" db:"accrual"` // accrued amount
+	UploadAt    time.Time       `json:"uploaded_at" db:"uploaded_at"`   // upload date
+	UserID      string          `json:"-" db:"user_id"`                 // user id
+	IsAccrualed bool            `json:"-" db:"is_accrualed"`            // is accrualed
 }

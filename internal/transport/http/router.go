@@ -12,6 +12,7 @@ import (
 	"github.com/klyakssa/go-diplom.git/pkg/jwt"
 )
 
+// Router
 type Router struct {
 	cfg        *config.WebServerConfig
 	engine     *gin.Engine
@@ -20,6 +21,7 @@ type Router struct {
 	jwtManager *jwt.JWTManager
 }
 
+// NewRouter creates a new instance of Router
 func NewRouter(logger *logger.Logger, cfg *config.Config, jwtManager *jwt.JWTManager) *Router {
 	if cfg.Debug {
 		gin.SetMode(gin.DebugMode)
@@ -46,6 +48,7 @@ func NewRouter(logger *logger.Logger, cfg *config.Config, jwtManager *jwt.JWTMan
 	}
 }
 
+// Run starts the HTTP server
 func (r *Router) Run(ctx context.Context) error {
 
 	errChan := make(chan error, 1)
@@ -67,6 +70,7 @@ func (r *Router) Run(ctx context.Context) error {
 	}
 }
 
+// RegisterRoutes registers routes
 func (r *Router) RegisterRoutes(authHandler *AuthHandler, ordersHandler *OrdersHandler, balanceHandler *BalanceHandler) {
 	api := r.engine.Group("/api/user")
 	{

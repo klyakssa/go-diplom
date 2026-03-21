@@ -15,6 +15,7 @@ type OrdersHandler struct {
 	service orders.Service
 }
 
+// NewOrdersHandler creates new instance of orders handler
 func NewOrdersHandler(log *logger.Logger, service orders.Service) *OrdersHandler {
 	return &OrdersHandler{
 		log:     log,
@@ -22,6 +23,7 @@ func NewOrdersHandler(log *logger.Logger, service orders.Service) *OrdersHandler
 	}
 }
 
+// CreateOrders endpoint creates new order
 func (o *OrdersHandler) CreateOrders(c *gin.Context) {
 	var number string
 	if err := c.ShouldBindPlain(&number); err != nil {
@@ -69,6 +71,7 @@ func (o *OrdersHandler) CreateOrders(c *gin.Context) {
 	c.JSON(http.StatusAccepted, gin.H{"message": "Order added successfully"})
 }
 
+// GetOrders endpoint returns all orders
 func (o *OrdersHandler) GetOrders(c *gin.Context) {
 	orders, err := o.service.GetOrders(c.Request.Context(), c.GetString("user_id"))
 	if err != nil {

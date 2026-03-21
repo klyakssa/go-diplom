@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// LoggingMiddleware is a middleware that logs the request
 func LoggingMiddleware(logger *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		logger.Debug("request",

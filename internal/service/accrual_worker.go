@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// AccrualWorker
 type AccrualWorker struct {
 	client    *resty.Client
 	url       string
@@ -19,6 +20,7 @@ type AccrualWorker struct {
 	log       *logger.Logger
 }
 
+// NewAccrualWorker creates new instance of AccrualWorker
 func NewAccrualWorker(log *logger.Logger, orderRepo ordersPkg.Repository, url string) *AccrualWorker {
 	return &AccrualWorker{
 		client: resty.New().
@@ -29,6 +31,7 @@ func NewAccrualWorker(log *logger.Logger, orderRepo ordersPkg.Repository, url st
 	}
 }
 
+// Start starts the AccrualWorker
 func (w *AccrualWorker) Start(ctx context.Context) {
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
@@ -43,12 +46,14 @@ func (w *AccrualWorker) Start(ctx context.Context) {
 	}
 }
 
+// AccrualResponse
 type AccrualResponse struct {
-	Order   string          `json:"order"`
-	Status  string          `json:"status"`
-	Accrual decimal.Decimal `json:"accrual"`
+	Order   string          `json:"order"` // order number
+	Status  string          `json:"status"` // order status
+	Accrual decimal.Decimal `json:"accrual"` // order accrual
 }
 
+// process processes pending orders
 func (w *AccrualWorker) process(ctx context.Context) {
 	orders, err := w.orderRepo.GetPendingOrders(ctx)
 	if err != nil {

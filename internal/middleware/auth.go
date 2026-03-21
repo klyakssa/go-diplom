@@ -7,6 +7,7 @@ import (
 	"github.com/klyakssa/go-diplom.git/pkg/jwt"
 )
 
+// AuthMiddleware is a middleware that checks if the user is authenticated
 func AuthMiddleware(jwtManager *jwt.JWTManager) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token, err := c.Cookie("auth_token")

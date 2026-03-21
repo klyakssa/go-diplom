@@ -11,10 +11,12 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// Logger
 type Logger struct {
 	*zap.Logger
 }
 
+// NewLogger creates a new instance of Logger
 func NewLogger(cfg *config.LoggingConfiguration, name string) *Logger {
 	logger := zap.New(configure(cfg, name), zap.AddCaller(), zap.AddStacktrace(zap.ErrorLevel))
 	return &Logger{Logger: logger}

@@ -16,6 +16,7 @@ type BalanceHandler struct {
 	log     *logger.Logger
 }
 
+// NewBalanceHandler creates new instance of balance handler
 func NewBalanceHandler(log *logger.Logger, service balance.Service) *BalanceHandler {
 	return &BalanceHandler{
 		service: service,
@@ -23,11 +24,13 @@ func NewBalanceHandler(log *logger.Logger, service balance.Service) *BalanceHand
 	}
 }
 
+// WithdrawBalanceRequest is a request for withdraw balance
 type WithdrawBalanceRequest struct {
-	OrderNumber string          `json:"order" binding:"required"`
-	Sum         decimal.Decimal `json:"sum"`
+	OrderNumber string          `json:"order" binding:"required"` // order number
+	Sum         decimal.Decimal `json:"sum"`                      // the amount that subtracts from the user's balance
 }
 
+// WithdrawBalance endpoint withdraws balance
 func (h *BalanceHandler) WithdrawBalance(c *gin.Context) {
 
 	var req WithdrawBalanceRequest
@@ -70,9 +73,10 @@ func (h *BalanceHandler) WithdrawBalance(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Balance withdrawn successfully"})
 }
 
+// DepositBalanceResponse is a response for get balance
 type DepositBalanceResponse struct {
-	CurrentBalance decimal.Decimal `json:"current"`
-	WithDrawn      decimal.Decimal `json:"withdrawn"`
+	CurrentBalance decimal.Decimal `json:"current"`   // current balance
+	WithDrawn      decimal.Decimal `json:"withdrawn"` // the sum of user's withdrawals
 }
 
 func (h *BalanceHandler) GetBalanceWithdrawn(c *gin.Context) {
@@ -89,6 +93,7 @@ func (h *BalanceHandler) GetBalanceWithdrawn(c *gin.Context) {
 	})
 }
 
+// GetWithdrawals endpoint returns all withdrawals
 func (h *BalanceHandler) GetWithdrawals(c *gin.Context) {
 	withdrawls, err := h.service.GetWithdrawls(c.Request.Context(), c.GetString("user_id"))
 	if err != nil {

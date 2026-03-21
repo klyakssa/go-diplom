@@ -6,11 +6,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+// JWTManager represents the JWT manager
 type JWTManager struct {
 	secretKey  string
 	expiration time.Duration
 }
 
+// NewJWTManager creates a new instance of JWTManager
 func NewJWTManager(secretKey string, expiration time.Duration) *JWTManager {
 	return &JWTManager{secretKey: secretKey, expiration: expiration}
 }
@@ -20,6 +22,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
+// GenerateToken generates a JWT token
 func (j *JWTManager) GenerateToken(userID string) (string, error) {
 	claims := &Claims{
 		UserID: userID,
@@ -33,6 +36,7 @@ func (j *JWTManager) GenerateToken(userID string) (string, error) {
 	return token.SignedString([]byte(j.secretKey))
 }
 
+// VerifyToken verifies a JWT token
 func (j *JWTManager) VerifyToken(tokenStr string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {

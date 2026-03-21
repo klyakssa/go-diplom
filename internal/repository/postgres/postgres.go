@@ -18,17 +18,19 @@ import (
 var embedMigrations embed.FS
 
 var (
-	ErrConnection         = errors.New("connection error")
-	ErrMigration          = errors.New("migration error")
-	ErrNoConnectionString = errors.New("no connection string")
+	ErrConnection         = errors.New("connection error")     // return when connection error
+	ErrMigration          = errors.New("migration error")      // return when migration error
+	ErrNoConnectionString = errors.New("no connection string") // return when no connection string
 )
 
+// PostgresStorage
 type PostgresStorage struct {
 	*sqlx.DB
 	cfg *config.Config
 	l   *logger.Logger
 }
 
+// NewPostgresStorage returns a new instance of PostgresStorage
 func NewPostgresStorage(cfg *config.Config, l *logger.Logger) (*PostgresStorage, error) {
 	c, err := connectPostgres(cfg)
 	return &PostgresStorage{
@@ -39,6 +41,7 @@ func NewPostgresStorage(cfg *config.Config, l *logger.Logger) (*PostgresStorage,
 		err
 }
 
+// Close closes the database
 func (s *PostgresStorage) Close() error {
 	return s.DB.Close()
 }

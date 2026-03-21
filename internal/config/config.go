@@ -11,46 +11,48 @@ import (
 )
 
 type WebServerConfig struct {
-	RunAddress string `mapstructure:"run-address"`
+	RunAddress string `mapstructure:"run-address"` // run address
 }
 
 type AppConfig struct {
-	Name string `mapstructure:"name"`
+	Name string `mapstructure:"name"` // app name
 }
 
 type LoggingConfiguration struct {
-	Level      string `mapstructure:"level"`
-	Path       string `mapstructure:"path"`
-	MaxSize    int    `mapstructure:"max-size"`
-	MaxBackups int    `mapstructure:"max-backups"`
-	MaxAge     int    `mapstructure:"max-age"`
+	Level      string `mapstructure:"level"`       // logging level
+	Path       string `mapstructure:"path"`        // logging path
+	MaxSize    int    `mapstructure:"max-size"`    // logging max size
+	MaxBackups int    `mapstructure:"max-backups"` // logging max backups
+	MaxAge     int    `mapstructure:"max-age"`     // logging max age
 }
 
 type DBConfig struct {
-	ConnectionString string `mapstructure:"connection-string"`
+	ConnectionString string `mapstructure:"connection-string"` // database connection string
 }
 
 type JWTConfig struct {
-	Secret string        `mapstructure:"secret"`
-	Expire time.Duration `mapstructure:"expire"`
+	Secret string        `mapstructure:"secret"` // jwt secret
+	Expire time.Duration `mapstructure:"expire"` // jwt expire
 }
 
 type AccrualConfig struct {
-	Address string `mapstructure:"address"`
+	Address string `mapstructure:"address"` // accrual service address
 }
 
+// Config struct
 type Config struct {
-	Debug   bool                  `mapstructure:"debug"`
-	App     *AppConfig            `mapstructure:"app"`
-	Logging *LoggingConfiguration `mapstructure:"logging"`
-	Web     *WebServerConfig      `mapstructure:"web"`
-	PostDB  *DBConfig             `mapstructure:"postdb"`
-	JWT     *JWTConfig            `mapstructure:"jwt"`
-	Accrual *AccrualConfig        `mapstructure:"accrual"`
+	Debug   bool                  `mapstructure:"debug"`   // debug mode
+	App     *AppConfig            `mapstructure:"app"`     // app name
+	Logging *LoggingConfiguration `mapstructure:"logging"` // logging config
+	Web     *WebServerConfig      `mapstructure:"web"`     // web server config
+	PostDB  *DBConfig             `mapstructure:"postdb"`  // database config
+	JWT     *JWTConfig            `mapstructure:"jwt"`     // jwt config
+	Accrual *AccrualConfig        `mapstructure:"accrual"` // accrual service config
 }
 
 var C *Config = new(Config)
 
+// InitConfiguration returns a new instance of Config
 func InitConfiguration() *Config {
 	initConfig()
 	return C

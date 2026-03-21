@@ -12,20 +12,23 @@ import (
 
 const invalidRequestMsg = "Invalid request"
 
+// AuthHandler
 type AuthHandler struct {
 	service auth.Service
 	log     *logger.Logger
 }
 
+// NewAuthHandler creates new instance of auth handler
 func NewAuthHandler(log *logger.Logger, service auth.Service) *AuthHandler {
 	return &AuthHandler{log: log, service: service}
 }
 
 type registerRequest struct {
-	Login    string `json:"login" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Login    string `json:"login" binding:"required"`    // login of user
+	Password string `json:"password" binding:"required"` // password of user
 }
 
+// Register endpoint registers new user
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req registerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -67,10 +70,11 @@ func (h *AuthHandler) Register(c *gin.Context) {
 }
 
 type loginRequest struct {
-	Login    string `json:"login" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Login    string `json:"login" binding:"required"`    // login of user
+	Password string `json:"password" binding:"required"` // password of user
 }
 
+// Login endpoint logs in user
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req loginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

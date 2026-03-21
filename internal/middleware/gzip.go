@@ -8,6 +8,7 @@ import (
 	"github.com/klyakssa/go-diplom.git/pkg/gzip"
 )
 
+// GzipMiddleware is a middleware that compresses the response and decompresses the request
 func GzipMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		acceptEncoding := c.Request.Header.Get("Accept-Encoding")

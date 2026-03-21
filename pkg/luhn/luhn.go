@@ -2,6 +2,7 @@ package luhn
 
 import "strings"
 
+// Valid checks if a card number is valid
 func Valid(numberString string) bool {
 	card := strings.ReplaceAll(numberString, " ", "")
 	sum := 0
