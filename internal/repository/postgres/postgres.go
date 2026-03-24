@@ -5,6 +5,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
@@ -50,7 +51,20 @@ func connectPostgres(cfg *config.Config) (*sqlx.DB, error) {
 	if cfg.PostDB.ConnectionString == "" {
 		return nil, ErrNoConnectionString
 	}
-	dbpool, err := pgxpool.New(context.Background(), cfg.PostDB.ConnectionString)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	config, err := pgxpool.ParseConfig(cfg.PostDB.ConnectionString)
+	if err != nil {
+		return nil, fmt.Errorf("parse config: %w", err)
+	}
+
+	config.ConnConfig.ConnectTimeout = 5 * time.Second
+
+	config.MaxConnLifetime = 30 * time.Minute
+	config.MaxConnIdleTime = 5 * time.Minute
+
+	dbpool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
 		return nil, fmt.Errorf("pgxpool: %w", err)
 	}
