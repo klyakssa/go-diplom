@@ -11,7 +11,7 @@ create table if not exists orders (
     status order_status NOT NULL DEFAULT 'NEW',
     accrual INTEGER DEFAULT 0,
     uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    user_id INTEGER REFERENCES users(id) NOT NULL,
+    user_id INTEGER REFERENCES users(id) NOT NULL
 );
 -- +goose StatementEnd
 
